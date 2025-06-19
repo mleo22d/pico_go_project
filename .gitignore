@@ -1,0 +1,20 @@
+# --- ROS 2 workspace ---
+/ros_ws/build/
+/ros_ws/install/
+/ros_ws/log/
+
+# --- Pico SDK & firmware ---
+/micro_ros_raspberrypi_pico_sdk/build/
+/micro_ros_raspberrypi_pico_sdk/**/*.uf2
+*.elf
+*.bin
+*.hex
+
+# --- Python artefacts ---
+__pycache__/
+**/*.py[cod]
+
+# --- IDE & OS files ---
+.vscode/
+.idea/
+.DS_Store
