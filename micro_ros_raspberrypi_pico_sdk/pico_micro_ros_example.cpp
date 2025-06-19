@@ -8,6 +8,9 @@
 #include "hardware/pwm.h"
 #include "pico/stdlib.h"
 #include "pico_uart_transports.h"
+#include "pico_wifi_transport.h"
+#include "pico/cyw43_arch.h"
+#include <lwip/inet.h>
 
 // Pines
 const uint LED_PIN = 25;
@@ -19,6 +22,12 @@ const uint AIN2 = 17;
 const uint PWMB = 21;
 const uint BIN1 = 19;
 const uint BIN2 = 20;
+
+// Wi-Fi credentials and Agent configuration
+const char *WIFI_SSID = "YOUR_WIFI_SSID";
+const char *WIFI_PASS = "YOUR_WIFI_PASSWORD";
+const char *AGENT_IP = "192.168.1.100";
+const uint16_t AGENT_PORT = 8888;
 
 rcl_publisher_t publisher;
 rcl_subscription_t subscriber;
@@ -111,13 +120,27 @@ void subscription_callback(const void * msgin) {
 
 int main()
 {
+    if (cyw43_arch_init()) {
+        return 1;
+    }
+    cyw43_arch_enable_sta_mode();
+    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASS,
+            CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+        return 1;
+    }
+
+    pico_wifi_transport_t wifi_transport{};
+    wifi_transport.agent_addr.sin_family = AF_INET;
+    wifi_transport.agent_addr.sin_port = PP_HTONS(AGENT_PORT);
+    wifi_transport.agent_addr.sin_addr.s_addr = ipaddr_addr(AGENT_IP);
+
     rmw_uros_set_custom_transport(
         true,
-        NULL,
-        pico_serial_transport_open,
-        pico_serial_transport_close,
-        pico_serial_transport_write,
-        pico_serial_transport_read
+        &wifi_transport,
+        pico_wifi_transport_open,
+        pico_wifi_transport_close,
+        pico_wifi_transport_write,
+        pico_wifi_transport_read
     );
 
     stdio_init_all();

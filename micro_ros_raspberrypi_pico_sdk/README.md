@@ -57,8 +57,15 @@ You can do so using the [micro-ros-agent Docker](https://hub.docker.com/r/micror
 docker run -it --rm -v /dev:/dev --privileged --net=host microros/micro-ros-agent:humble serial --dev /dev/ttyACM0 -b 115200
 ```
 
+To use the Wi-Fi transport instead of USB, run the agent in UDP mode:
+
+```bash
+docker run -it --rm --net=host microros/micro-ros-agent:humble udp4 --port 8888
+```
+
 ## What files are relevant?
-- `pico_uart_transport.c`: Contains the board specific implementation of the serial transport (no change needed).
+- `pico_uart_transport.c`: Serial (USB) transport implementation.
+- `pico_wifi_transport.c`: Wi-Fi UDP transport implementation.
 - `CMakeLists.txt`: CMake file.
 - `pico_micro_ros_example.c`: The actual ROS 2 publisher.
 

@@ -14,12 +14,13 @@ link_directories(libmicroros)
 add_executable(pico_micro_ros_example
     pico_micro_ros_example.cpp
     pico_uart_transport.c
+    pico_wifi_transport.c
 )
 target_link_libraries(pico_micro_ros_example
     pico_stdlib
     microros
     hardware_pwm
-
+    pico_cyw43_arch_lwip_threadsafe_background
 )
 
 target_include_directories(pico_micro_ros_example PUBLIC
