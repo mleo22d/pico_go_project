@@ -4,6 +4,6 @@
   <name>micro_ros_raspberrypicosdk</name>
   <version>3.0.2</version>
   <description>micro-ROS tools for Raspberry Pico SDK</description>
-  <maintainer email="pablogarrido@eprosima.com">Pablo Garrido</maintainer>
+  <maintainer email="matiasloayzac@hotmail.com">Matias Loayza Correa</maintainer>
   <license>Apache License 2.0</license>
 </package>

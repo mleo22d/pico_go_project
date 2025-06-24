@@ -8,6 +8,9 @@
 #include "hardware/pwm.h"
 #include "pico/stdlib.h"
 #include "pico_uart_transports.h"
+#include "pico_wifi_transport.h" 
+#include "pico/cyw43_arch.h"
+
 
 // Pines
 const uint LED_PIN = 25;
@@ -111,15 +114,24 @@ void subscription_callback(const void * msgin) {
 
 int main()
 {
-    rmw_uros_set_custom_transport(
+    /*rmw_uros_set_custom_transport(
         true,
         NULL,
         pico_serial_transport_open,
         pico_serial_transport_close,
         pico_serial_transport_write,
         pico_serial_transport_read
-    );
+    );*/
 
+    rmw_uros_set_custom_transport(
+        true,
+        NULL,
+        pico_wifi_transport_open,
+        pico_wifi_transport_close,
+        pico_wifi_transport_write,
+        pico_wifi_transport_read);
+
+    
     stdio_init_all();
     gpio_init(LED_PIN); gpio_set_dir(LED_PIN, GPIO_OUT);
     setup_ultrasonic();
@@ -163,6 +175,7 @@ int main()
     last_cmd_time = get_absolute_time();
     while (true)
     {
+        cyw43_arch_poll();
         float dist = read_distance_cm();
         printf("Distancia: %.2f cm\n", dist);
 
