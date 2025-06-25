@@ -1,16 +1,16 @@
+#include <stdio.h>
 #include <string.h>
-#include "pico/stdlib.h"
+#include "pico/cyw43_arch.h"
 #include "lwip/sockets.h"
 #include "lwip/netdb.h"
-#include "cyw43_arch.h"
 
 #include <uxr/client/profile/transport/custom/custom_transport.h>
-#include "wifi_config.h"  // Define WIFI_SSID, WIFI_PASSWORD, AGENT_IP, AGENT_PORT
+#include "wifi_config.h"
 
 static int udp_socket;
 static struct sockaddr_in agent_addr;
 
-bool pico_wifi_transport_open(struct uxrCustomTransport* transport)
+bool pico_wifi_transport_open(struct uxrCustomTransport * transport)
 {
     if (cyw43_arch_init()) {
         return false;
@@ -34,32 +34,32 @@ bool pico_wifi_transport_open(struct uxrCustomTransport* transport)
     return true;
 }
 
-bool pico_wifi_transport_close(struct uxrCustomTransport* transport)
+bool pico_wifi_transport_close(struct uxrCustomTransport * transport)
 {
     lwip_close(udp_socket);
     return true;
 }
 
-size_t pico_wifi_transport_write(struct uxrCustomTransport* transport, const uint8_t* buf, size_t len, uint8_t* errcode)
+size_t pico_wifi_transport_write(struct uxrCustomTransport * transport, const uint8_t *buf, size_t len, uint8_t *errcode)
 {
-    int sent = lwip_sendto(udp_socket, buf, len, 0, (struct sockaddr*)&agent_addr, sizeof(agent_addr));
+    int sent = lwip_sendto(udp_socket, buf, len, 0, (struct sockaddr *)&agent_addr, sizeof(agent_addr));
     return (sent < 0) ? 0 : (size_t)sent;
 }
 
-size_t pico_wifi_transport_read(struct uxrCustomTransport* transport, uint8_t* buf, size_t len, int timeout, uint8_t* errcode)
+size_t pico_wifi_transport_read(struct uxrCustomTransport * transport, uint8_t *buf, size_t len, int timeout, uint8_t *errcode)
 {
-    struct sockaddr_in src_addr;
-    socklen_t addr_len = sizeof(src_addr);
+    struct sockaddr_in source_addr;
+    socklen_t addr_len = sizeof(source_addr);
 
     lwip_fcntl(udp_socket, F_SETFL, O_NONBLOCK);
 
     uint64_t start = time_us_64();
-    while ((time_us_64() - start) < (uint64_t)(timeout * 1000)) {
-        int received = lwip_recvfrom(udp_socket, buf, len, 0, (struct sockaddr*)&src_addr, &addr_len);
+    while ((time_us_64() - start) < timeout * 1000) {
+        int received = lwip_recvfrom(udp_socket, buf, len, 0, (struct sockaddr *)&source_addr, &addr_len);
         if (received > 0) {
             return (size_t)received;
         }
-        sleep_ms(1);
+        sleep_ms(1); // evitar bloqueo
     }
 
     *errcode = 1;

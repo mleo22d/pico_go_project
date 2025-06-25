@@ -10,6 +10,8 @@
 #include "pico_uart_transports.h"
 #include "pico_wifi_transport.h" 
 #include "pico/cyw43_arch.h"
+#include "wifi_config.h"
+
 
 
 // Pines
@@ -123,6 +125,20 @@ int main()
         pico_serial_transport_read
     );*/
 
+    if (cyw43_arch_init()) {
+        printf("WiFi init failed\n");
+        return 1;
+    }
+
+    cyw43_arch_enable_sta_mode();
+
+    if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
+        printf("WiFi connection failed\n");
+        return 1;
+    }
+
+    printf("WiFi connected successfully\n");
+
     rmw_uros_set_custom_transport(
         true,
         NULL,
@@ -175,7 +191,7 @@ int main()
     last_cmd_time = get_absolute_time();
     while (true)
     {
-        cyw43_arch_poll();
+        //cyw43_arch_poll();
         float dist = read_distance_cm();
         printf("Distancia: %.2f cm\n", dist);
 
