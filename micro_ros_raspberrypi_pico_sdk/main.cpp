@@ -7,11 +7,13 @@
 #include <rmw_microros/rmw_microros.h>
 #include "hardware/pwm.h"
 #include "pico/stdlib.h"
-#include "pico_uart_transports.h"
-#include "pico_wifi_transport.h" 
-#include "pico/cyw43_arch.h"
 #include "wifi_config.h"
-
+//#include "pico_uart_transports.h"
+#include "pico/cyw43_arch.h"
+#include "lwip/pbuf.h"
+#include "lwip/udp.h"
+#include "picow_udp_transports.h"
+#include "pico/async_context.h"
 
 
 // Pines
@@ -116,40 +118,49 @@ void subscription_callback(const void * msgin) {
 
 int main()
 {
-    /*rmw_uros_set_custom_transport(
+
+    stdio_init_all();
+    ST_PICOW_TRANSPORT_PARAMS picow_params = {0};
+
+
+    /*
+    rmw_uros_set_custom_transport(
         true,
         NULL,
         pico_serial_transport_open,
         pico_serial_transport_close,
         pico_serial_transport_write,
         pico_serial_transport_read
-    );*/
+    );
+*/
+    // VIA WIFI UDP
 
     if (cyw43_arch_init()) {
-        printf("WiFi init failed\n");
+        printf("failed to initialise\n");
         return 1;
     }
 
     cyw43_arch_enable_sta_mode();
 
+    printf("Connecting to WiFi...\n");
     if (cyw43_arch_wifi_connect_timeout_ms(WIFI_SSID, WIFI_PASSWORD, CYW43_AUTH_WPA2_AES_PSK, 30000)) {
-        printf("WiFi connection failed\n");
+        printf("failed to connect.\n");
         return 1;
+    } else {
+        printf("Connected.\n");
     }
 
-    printf("WiFi connected successfully\n");
-
     rmw_uros_set_custom_transport(
-        true,
-        NULL,
-        pico_wifi_transport_open,
-        pico_wifi_transport_close,
-        pico_wifi_transport_write,
-        pico_wifi_transport_read);
+        false,          
+        &picow_params,
+        picow_udp_transport_open,
+        picow_udp_transport_close,
+        picow_udp_transport_write,
+        picow_udp_transport_read
+    );
 
-    
-    stdio_init_all();
-    gpio_init(LED_PIN); gpio_set_dir(LED_PIN, GPIO_OUT);
+    // CONECTION COMPLETE
+
     setup_ultrasonic();
     setup_motors();
 
@@ -165,6 +176,7 @@ int main()
     rcl_node_t node;
     rclc_node_init_default(&node, "pico_node", "", &support);
 
+    // CREATE THE PUBLISHER
     rclc_publisher_init_default(
         &publisher,
         &node,
@@ -172,6 +184,7 @@ int main()
         "obstacle_distance"
     );
 
+    // CREATE THE SUBSCRIBER
     rclc_subscription_init_default(
         &subscriber,
         &node,
@@ -181,7 +194,7 @@ int main()
 
     rcl_timer_t timer;
     rclc_timer_init_default(&timer, &support, RCL_MS_TO_NS(1000), NULL);
-
+    
     rclc_executor_t executor;
     rclc_executor_init(&executor, &support.context, 2, &allocator);
     rclc_executor_add_timer(&executor, &timer);
@@ -191,7 +204,7 @@ int main()
     last_cmd_time = get_absolute_time();
     while (true)
     {
-        //cyw43_arch_poll();
+        cyw43_arch_poll();
         float dist = read_distance_cm();
         printf("Distancia: %.2f cm\n", dist);
 
@@ -204,9 +217,9 @@ int main()
         rcl_publish(&publisher, &msg, NULL);
         rclc_executor_spin_some(&executor, RCL_MS_TO_NS(100));
          // Timeout de seguridad: si no recibes comandos en 3 segundos, detener
-        if (absolute_time_diff_us(last_cmd_time, get_absolute_time()) > 3e6) {
-            stop();
-        }
+        //if (absolute_time_diff_us(last_cmd_time, get_absolute_time()) > 3e6) {
+        //    stop();
+        //}
     }
 
     return 0;
