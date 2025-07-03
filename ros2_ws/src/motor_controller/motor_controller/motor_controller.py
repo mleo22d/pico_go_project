@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Int32
+from time import time
 
 class MotorController(Node):
     def __init__(self):
@@ -13,19 +14,23 @@ class MotorController(Node):
         )
         self.publisher = self.create_publisher(Int32, 'motor_control', 10)
         self.get_logger().info('Motor Controller node started')
+        self.last_publish_time = time()
 
     def sensor_callback(self, msg):
-        obstacle_distance = msg.data
-        self.get_logger().info(f'Distancia alerta: {obstacle_distance}')
+        now = time()
+        if now - self.last_publish_time > 0.1: 
+            obstacle_distance = msg.data
+            self.get_logger().info(f'Distancia alerta: {obstacle_distance}')
 
-        # Si está muy cerca de un objeto, detenemos (envía 0), si no, seguimos (envía 1)
-        command = Int32()
-        if obstacle_distance == 0:  # hay un obstáculo cercano
-            command.data = 0  # detener motores
-        else:
-            command.data = 1  # seguir moviéndose
+            # Si está muy cerca de un objeto, detenemos (envía 0), si no, seguimos (envía 1)
+            command = Int32()
+            if obstacle_distance == 0:  # hay un obstáculo cercano
+                command.data = 0  # detener motores
+            else:
+                command.data = 1  # seguir moviéndose
 
-        self.publisher.publish(command)
+            self.publisher.publish(command)
+            self.last_publish_time = now
 
 def main(args=None):
     rclpy.init(args=args)

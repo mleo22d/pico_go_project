@@ -8,9 +8,7 @@
 #include "pico/cyw43_arch.h"
 #include "lwip/pbuf.h"
 #include "lwip/udp.h"
-
-#define ROS_AGENT_UDP_PORT  (8888)
-#define ROS_AGENT_IP_ADDR   "192.168.137.67"    
+#include "wifi_config.h"
 
 #ifdef __cplusplus
 extern "C"

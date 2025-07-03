@@ -7,7 +7,7 @@
 #include <uxr/client/profile/transport/custom/custom_transport.h>
 #include "picow_udp_transports.h"
 
-uint8_t trans_recv_buff[512] = { 0 };
+uint8_t trans_recv_buff[2048] = { 0 };
 uint16_t trans_recv_len = 0;
 
 
@@ -36,26 +36,26 @@ static void callback_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const 
     cyw43_arch_lwip_begin();
     if (params) {
         // Check the result
-        printf("callback_recv: ip[%s]port[%d]\n", ipaddr_ntoa(addr), port);
+        //printf("callback_recv: ip[%s]port[%d]\n", ipaddr_ntoa(addr), port);
         if (ip_addr_cmp(addr, &params->ipaddr)) {
             if (trans_recv_len > 0) {
-                printf("callback_recv: maybee data loss.. trans_recv_len(%d)\n", trans_recv_len);
+               // printf("callback_recv: maybee data loss.. trans_recv_len(%d)\n", trans_recv_len);
             }
             trans_recv_len = pbuf_copy_partial(p, trans_recv_buff, sizeof(trans_recv_buff), 0);
-            printf("callback_recv: trans_recv_len(%d)\n", trans_recv_len);
+           // printf("callback_recv: trans_recv_len(%d)\n", trans_recv_len);
         }
         else {
-            printf("callback_recv: invalid micro-ROS Agent response\n");
+          //  printf("callback_recv: invalid micro-ROS Agent response\n");
         }
     }
     pbuf_free(p);
     cyw43_arch_lwip_end();
-
+/*
     for (int i = 0; i < trans_recv_len; i++) {
         printf("%02x ", trans_recv_buff[i]);
     }
     printf("\n");
-
+*/
 }
 
 bool picow_udp_transport_open(struct uxrCustomTransport * transport)
@@ -128,11 +128,11 @@ size_t picow_udp_transport_write(struct uxrCustomTransport * transport, const ui
         cyw43_arch_lwip_end();
     }
 
-    printf("picow_udp_transport_write: len(%d) trans_len(%d)\n", len, trans_len);
+    //printf("picow_udp_transport_write: len(%d) trans_len(%d)\n", len, trans_len);
     for (int i = 0; i < trans_len; i++) {
-        printf("%02x ", buf[i]);
+      //  printf("%02x ", buf[i]);
     }
-    printf("\n");
+   // printf("\n");
 
     return trans_len;
 }

@@ -23,8 +23,8 @@ link_directories(libmicroros)
 
 add_executable(main
     main.cpp
-    # pico_uart_transport.c
-    picow_udp_transports.c
+    wireless_communication/picow_udp_transports.c
+    motor_control/motor.cpp
 )
 
 target_link_libraries(main
@@ -36,7 +36,7 @@ target_link_libraries(main
 
 target_include_directories(main PUBLIC
     libmicroros/include
-    ${CMAKE_CURRENT_LIST_DIR}/lwip_config
+    ${CMAKE_CURRENT_LIST_DIR}/wireless_communication
     ${PICO_SDK_PATH}/lib/lwip/src/include
 )
 

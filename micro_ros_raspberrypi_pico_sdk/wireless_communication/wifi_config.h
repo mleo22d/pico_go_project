@@ -3,7 +3,7 @@
 
 #define WIFI_SSID "MLEO"
 #define WIFI_PASSWORD "Khaleesi"
-#define AGENT_IP "192.168.137.67"  // IP de tu laptop
-#define AGENT_PORT 8888
+#define ROS_AGENT_IP_ADDR "192.168.137.67"  
+#define ROS_AGENT_UDP_PORT (8888)
 
 #endif

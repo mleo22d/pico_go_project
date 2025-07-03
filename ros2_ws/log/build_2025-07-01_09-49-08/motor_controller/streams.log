@@ -1,0 +1,25 @@
+[0.742s] Invoking command in '/home/user/pico_go_project/ros2_ws/src/motor_controller': PYTHONPATH=/home/user/pico_go_project/ros2_ws/build/motor_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/user/pico_go_project/ros2_ws/install/motor_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/motor_controller build --build-base /home/user/pico_go_project/ros2_ws/build/motor_controller/build install --record /home/user/pico_go_project/ros2_ws/build/motor_controller/install.log --single-version-externally-managed install_data
+[1.005s] running egg_info
+[1.006s] writing ../../build/motor_controller/motor_controller.egg-info/PKG-INFO
+[1.006s] writing dependency_links to ../../build/motor_controller/motor_controller.egg-info/dependency_links.txt
+[1.006s] writing entry points to ../../build/motor_controller/motor_controller.egg-info/entry_points.txt
+[1.007s] writing requirements to ../../build/motor_controller/motor_controller.egg-info/requires.txt
+[1.007s] writing top-level names to ../../build/motor_controller/motor_controller.egg-info/top_level.txt
+[1.009s] reading manifest file '../../build/motor_controller/motor_controller.egg-info/SOURCES.txt'
+[1.010s] adding license file 'LICENSE'
+[1.011s] writing manifest file '../../build/motor_controller/motor_controller.egg-info/SOURCES.txt'
+[1.011s] running build
+[1.011s] running build_py
+[1.011s] copying motor_controller/motor_controller.py -> /home/user/pico_go_project/ros2_ws/build/motor_controller/build/lib/motor_controller
+[1.012s] running install
+[1.012s] running install_lib
+[1.013s] copying /home/user/pico_go_project/ros2_ws/build/motor_controller/build/lib/motor_controller/motor_controller.py -> /home/user/pico_go_project/ros2_ws/install/motor_controller/lib/python3.10/site-packages/motor_controller
+[1.014s] byte-compiling /home/user/pico_go_project/ros2_ws/install/motor_controller/lib/python3.10/site-packages/motor_controller/motor_controller.py to motor_controller.cpython-310.pyc
+[1.015s] running install_data
+[1.016s] running install_egg_info
+[1.018s] removing '/home/user/pico_go_project/ros2_ws/install/motor_controller/lib/python3.10/site-packages/motor_controller-0.0.0-py3.10.egg-info' (and everything under it)
+[1.019s] Copying ../../build/motor_controller/motor_controller.egg-info to /home/user/pico_go_project/ros2_ws/install/motor_controller/lib/python3.10/site-packages/motor_controller-0.0.0-py3.10.egg-info
+[1.020s] running install_scripts
+[1.055s] Installing motor_controller script to /home/user/pico_go_project/ros2_ws/install/motor_controller/lib/motor_controller
+[1.056s] writing list of installed files to '/home/user/pico_go_project/ros2_ws/build/motor_controller/install.log'
+[1.077s] Invoked command in '/home/user/pico_go_project/ros2_ws/src/motor_controller' returned '0': PYTHONPATH=/home/user/pico_go_project/ros2_ws/build/motor_controller/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/user/pico_go_project/ros2_ws/install/motor_controller/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/motor_controller build --build-base /home/user/pico_go_project/ros2_ws/build/motor_controller/build install --record /home/user/pico_go_project/ros2_ws/build/motor_controller/install.log --single-version-externally-managed install_data
