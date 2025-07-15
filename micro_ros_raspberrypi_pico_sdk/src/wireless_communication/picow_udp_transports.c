@@ -28,11 +28,6 @@ int clock_gettime(clockid_t unused, struct timespec *tp)
 static void callback_recv(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port)
 {
     ST_PICOW_TRANSPORT_PARAMS* params = (ST_PICOW_TRANSPORT_PARAMS*) arg;
-
-    // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-    // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-    // these calls are a no-op and can be omitted, but it is a good practice to use them in
-    // case you switch the cyw43_arch type later.
     cyw43_arch_lwip_begin();
     if (params) {
         // Check the result
@@ -63,10 +58,6 @@ bool picow_udp_transport_open(struct uxrCustomTransport * transport)
     ST_PICOW_TRANSPORT_PARAMS* params = (ST_PICOW_TRANSPORT_PARAMS*) transport->args;
 
     if (params) {
-        // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-        // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-        // these calls are a no-op and can be omitted, but it is a good practice to use them in
-        // case you switch the cyw43_arch type later.
         cyw43_arch_lwip_begin();
         params->pcb = udp_new();
         ipaddr_aton(ROS_AGENT_IP_ADDR, &(params->ipaddr));
@@ -89,10 +80,6 @@ bool picow_udp_transport_close(struct uxrCustomTransport * transport)
     ST_PICOW_TRANSPORT_PARAMS* params = (ST_PICOW_TRANSPORT_PARAMS*) transport->args;
 
     if (params) {
-        // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-        // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-        // these calls are a no-op and can be omitted, but it is a good practice to use them in
-        // case you switch the cyw43_arch type later.
         cyw43_arch_lwip_begin();
         udp_remove(params->pcb);
         cyw43_arch_lwip_end();
@@ -109,10 +96,6 @@ size_t picow_udp_transport_write(struct uxrCustomTransport * transport, const ui
 
     ST_PICOW_TRANSPORT_PARAMS* params = (ST_PICOW_TRANSPORT_PARAMS*) transport->args;
     if (params) {
-        // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-        // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-        // these calls are a no-op and can be omitted, but it is a good practice to use them in
-        // case you switch the cyw43_arch type later.
         cyw43_arch_lwip_begin();
         struct pbuf* p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
         if (p) {
@@ -143,17 +126,11 @@ size_t picow_udp_transport_read(struct uxrCustomTransport * transport, uint8_t *
     *errcode = 1;   // failure
 
 #if PICO_CYW43_ARCH_POLL
-    // if you are using pico_cyw43_arch_poll, then you must poll periodically from your
-    // main loop (not from a timer) to check for WiFi driver or lwIP work that needs to be done.
     cyw43_arch_poll();
 #endif
 
     ST_PICOW_TRANSPORT_PARAMS* params = (ST_PICOW_TRANSPORT_PARAMS*) transport->args;
     if (params && (trans_recv_len > 0)) {
-        // cyw43_arch_lwip_begin/end should be used around calls into lwIP to ensure correct locking.
-        // You can omit them if you are in a callback from lwIP. Note that when using pico_cyw_arch_poll
-        // these calls are a no-op and can be omitted, but it is a good practice to use them in
-        // case you switch the cyw43_arch type later.
         cyw43_arch_lwip_begin();
         if (trans_recv_len >= len) {
             recv_len = len;
