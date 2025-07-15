@@ -1,24 +1,20 @@
 # pico_go_project
 This is a project to have between 3 and 5 automated picoGo, like AGVs
 
-# 1. Clona
+# 1. Clonw
 git clone https://github.com/mleo22d/pico_go_project.git
 cd pico_go_project
 
-# 2. (Re)compila el firmware si lo necesitas
+# 2. (Re)compile the firmware 
 cd micro_ros_raspberrypi_pico_sdk
+rm -rf build
 mkdir -p build && cd build
-cmake ..
-make             # genera .uf2, .elf, etc. → quedan ignorados por Git
-# luego flasheas tu PicoGo con picotool o tu script habitual
+cmake -DPICO_BOARD=pico_w ..
+make -j4
 
-# 3. Compila el workspace ROS 2
-cd ../../ros_ws        # vuelve al workspace
+# 3. Compile ROS2 workspace
+cd ../../ros_ws       
 colcon build --symlink-install
-source install/setup.bash   # o añade esto a tu ~/.bashrc
+source install/setup.bash  
 
-# 4. Lanza tu nodo o launch file
-ros2 run motor_controller motor_controller          # una instancia
-# o, cuando tengas launch:
-ros2 launch pico_go_bringup single_pico.launch.py
 

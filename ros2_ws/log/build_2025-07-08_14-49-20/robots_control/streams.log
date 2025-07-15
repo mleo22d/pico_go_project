@@ -1,0 +1,24 @@
+[0.670s] Invoking command in '/home/user/pico_go_project/ros2_ws/src/robots_control': PYTHONPATH=/home/user/pico_go_project/ros2_ws/build/robots_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/robots_control build --build-base /home/user/pico_go_project/ros2_ws/build/robots_control/build install --record /home/user/pico_go_project/ros2_ws/build/robots_control/install.log --single-version-externally-managed install_data
+[0.966s] running egg_info
+[0.967s] writing ../../build/robots_control/robots_control.egg-info/PKG-INFO
+[0.967s] writing dependency_links to ../../build/robots_control/robots_control.egg-info/dependency_links.txt
+[0.967s] writing entry points to ../../build/robots_control/robots_control.egg-info/entry_points.txt
+[0.968s] writing requirements to ../../build/robots_control/robots_control.egg-info/requires.txt
+[0.968s] writing top-level names to ../../build/robots_control/robots_control.egg-info/top_level.txt
+[0.970s] reading manifest file '../../build/robots_control/robots_control.egg-info/SOURCES.txt'
+[0.972s] writing manifest file '../../build/robots_control/robots_control.egg-info/SOURCES.txt'
+[0.972s] running build
+[0.972s] running build_py
+[0.972s] copying robots_control/obstacle_monitor.py -> /home/user/pico_go_project/ros2_ws/build/robots_control/build/lib/robots_control
+[0.972s] running install
+[0.973s] running install_lib
+[0.974s] copying /home/user/pico_go_project/ros2_ws/build/robots_control/build/lib/robots_control/obstacle_monitor.py -> /home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages/robots_control
+[0.974s] byte-compiling /home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages/robots_control/obstacle_monitor.py to obstacle_monitor.cpython-310.pyc
+[0.976s] running install_data
+[0.976s] running install_egg_info
+[0.978s] removing '/home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages/robots_control-0.0.0-py3.10.egg-info' (and everything under it)
+[0.978s] Copying ../../build/robots_control/robots_control.egg-info to /home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages/robots_control-0.0.0-py3.10.egg-info
+[0.979s] running install_scripts
+[0.998s] Installing obstacle_monitor script to /home/user/pico_go_project/ros2_ws/install/robots_control/lib/robots_control
+[0.999s] writing list of installed files to '/home/user/pico_go_project/ros2_ws/build/robots_control/install.log'
+[1.028s] Invoked command in '/home/user/pico_go_project/ros2_ws/src/robots_control' returned '0': PYTHONPATH=/home/user/pico_go_project/ros2_ws/build/robots_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/robots_control build --build-base /home/user/pico_go_project/ros2_ws/build/robots_control/build install --record /home/user/pico_go_project/ros2_ws/build/robots_control/install.log --single-version-externally-managed install_data
