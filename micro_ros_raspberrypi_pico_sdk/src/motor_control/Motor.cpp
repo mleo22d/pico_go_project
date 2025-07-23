@@ -53,9 +53,9 @@ void Motor::reverse(int speed) {
 
 void Motor::right(int speed) {
     gpio_put(_ain1, 0); gpio_put(_ain2, 1);
-    gpio_put(_bin1, 0); gpio_put(_bin2, 0);
+    gpio_put(_bin1, 1); gpio_put(_bin2, 0);
     set_speed(_pwma, speed);
-    set_speed(_pwmb, 0);
+    set_speed(_pwmb, int(speed/2.0));
 }
 
 void Motor::left(int speed) {

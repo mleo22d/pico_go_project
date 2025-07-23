@@ -50,15 +50,17 @@ const array<uint16_t, NUM_SENSORS>& InfraredSensor::get_calibrated_max() {
 
 void InfraredSensor::fixed_calibration() {
     //floor
+     /*
     _calibrated_min = {79, 54, 112, 49, 97};
     _calibrated_max = {607, 670, 781, 489, 810};
-    
-    //table
-    /*
-    _calibrated_min = {106, 81, 121, 86, 108};
-    _calibrated_max = {655, 714, 814, 518, 796};
     */
-    }
+    //table
+    _calibrated_min = {105, 102, 123, 98, 137};
+    _calibrated_max = {772, 851, 937, 601, 938};
+    /*
+    _calibrated_min = {141, 154, 146, 144, 122};
+    _calibrated_max = {949, 948, 935, 933, 829};*/
+}
 
 void InfraredSensor::calibrate() {
     _calibrated_min.fill(1023);  
@@ -82,7 +84,7 @@ void InfraredSensor::calibrate() {
 
         sleep_ms(100);  // un poco de pausa
     }
-
+   
 }
 
 const array<uint16_t, NUM_SENSORS> InfraredSensor::read_calibrated() {

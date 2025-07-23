@@ -9,6 +9,7 @@
 #include "lwip/pbuf.h"
 #include "lwip/udp.h"
 #include "wifi_config.h"
+#include "pico/async_context.h"
 
 #ifdef __cplusplus
 extern "C"
