@@ -1,0 +1,1 @@
+/home/user/pico_go_project/ros2_ws/src/robots_control/setup.py

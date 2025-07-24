@@ -59,9 +59,9 @@ void Motor::right(int speed) {
 }
 
 void Motor::left(int speed) {
-    gpio_put(_ain1, 0); gpio_put(_ain2, 0);
+    gpio_put(_ain1, 1); gpio_put(_ain2, 0);
     gpio_put(_bin1, 0); gpio_put(_bin2, 1);
-    set_speed(_pwma, 0);
+    set_speed(_pwma, int(speed/2.0));
     set_speed(_pwmb, speed);
 }
 

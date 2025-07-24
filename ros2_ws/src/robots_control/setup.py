@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'obstacle_monitor = robots_control.obstacle_monitor:main'
+            'obstacle_monitor = robots_control.obstacle_monitor:main',
+            'send_route = robots_control.send_route:main'
         ],
     },
 )

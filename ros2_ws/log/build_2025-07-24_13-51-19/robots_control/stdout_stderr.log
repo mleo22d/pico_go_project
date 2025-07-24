@@ -1,0 +1,15 @@
+running develop
+running egg_info
+writing robots_control.egg-info/PKG-INFO
+writing dependency_links to robots_control.egg-info/dependency_links.txt
+writing entry points to robots_control.egg-info/entry_points.txt
+writing requirements to robots_control.egg-info/requires.txt
+writing top-level names to robots_control.egg-info/top_level.txt
+reading manifest file 'robots_control.egg-info/SOURCES.txt'
+writing manifest file 'robots_control.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages/robots-control.egg-link (link to .)
+Installing obstacle_monitor = robots_control.obstacle_monitor:mainsend_route script to /home/user/pico_go_project/ros2_ws/install/robots_control/lib/robots_control
+
+Installed /home/user/pico_go_project/ros2_ws/build/robots_control
+running symlink_data

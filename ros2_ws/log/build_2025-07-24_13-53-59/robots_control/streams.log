@@ -1,0 +1,18 @@
+[0.778s] Invoking command in '/home/user/pico_go_project/ros2_ws/build/robots_control': PYTHONPATH=/home/user/pico_go_project/ros2_ws/build/robots_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/user/pico_go_project/ros2_ws/build/robots_control/build --no-deps symlink_data
+[1.106s] running develop
+[1.299s] running egg_info
+[1.300s] writing robots_control.egg-info/PKG-INFO
+[1.302s] writing dependency_links to robots_control.egg-info/dependency_links.txt
+[1.302s] writing entry points to robots_control.egg-info/entry_points.txt
+[1.302s] writing requirements to robots_control.egg-info/requires.txt
+[1.302s] writing top-level names to robots_control.egg-info/top_level.txt
+[1.303s] reading manifest file 'robots_control.egg-info/SOURCES.txt'
+[1.304s] writing manifest file 'robots_control.egg-info/SOURCES.txt'
+[1.306s] running build_ext
+[1.308s] Creating /home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages/robots-control.egg-link (link to .)
+[1.308s] Installing obstacle_monitor script to /home/user/pico_go_project/ros2_ws/install/robots_control/lib/robots_control
+[1.308s] Installing send_route script to /home/user/pico_go_project/ros2_ws/install/robots_control/lib/robots_control
+[1.309s] 
+[1.309s] Installed /home/user/pico_go_project/ros2_ws/build/robots_control
+[1.309s] running symlink_data
+[1.346s] Invoked command in '/home/user/pico_go_project/ros2_ws/build/robots_control' returned '0': PYTHONPATH=/home/user/pico_go_project/ros2_ws/build/robots_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/user/pico_go_project/ros2_ws/install/robots_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/user/pico_go_project/ros2_ws/build/robots_control/build --no-deps symlink_data

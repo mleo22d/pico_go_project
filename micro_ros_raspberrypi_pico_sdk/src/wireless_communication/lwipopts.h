@@ -21,12 +21,12 @@
 #endif
 #define MEM_ALIGNMENT               4
 #ifndef MEM_SIZE
-#define MEM_SIZE                    8000
+#define MEM_SIZE                    16000
 #endif
-#define MEMP_NUM_PBUF               64
-#define MEMP_NUM_TCP_SEG            64
+#define MEMP_NUM_PBUF               128
+#define MEMP_NUM_TCP_SEG            128
 #define MEMP_NUM_ARP_QUEUE          10
-#define PBUF_POOL_SIZE              64
+#define PBUF_POOL_SIZE              128
 #define LWIP_ARP                    1
 #define LWIP_ETHERNET               1
 #define LWIP_ICMP                   1
