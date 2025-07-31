@@ -65,6 +65,20 @@ void Motor::left(int speed) {
     set_speed(_pwmb, speed);
 }
 
+void Motor::drop_right(int speed) {
+    gpio_put(_ain1, 1); gpio_put(_ain2, 0);
+    gpio_put(_bin1, 0); gpio_put(_bin2, 1);
+    set_speed(_pwma, speed);
+    set_speed(_pwmb, speed);
+}
+
+void Motor::drop_left(int speed) {
+    gpio_put(_ain1, 0); gpio_put(_ain2, 1);
+    gpio_put(_bin1, 1); gpio_put(_bin2, 0);
+    set_speed(_pwma, speed);
+    set_speed(_pwmb, speed);
+}
+
 void Motor::set_motor(int left, int right) {
     if ((left >= 0) and (left <= 100)) {
         gpio_put(_ain1, 0);

@@ -21,7 +21,7 @@
 #include "obstacle_detection/UltrasonicSensor.h"
 #include "display/st7789.h"
 #include <algorithm>
-
+#include "display/st7789.h"
 
 using namespace std;
 
@@ -54,7 +54,7 @@ bool line_lost = false;
 rcl_subscription_t route_subscriber;
 //std_msgs__msg__Bool route_msg;
 std_msgs__msg__String route_msg;
-std::vector<char> route = {'R','R','R','R'};
+std::vector<char> route;
 size_t route_step = 0;
 
 // values publisher (DEBUG)
@@ -81,7 +81,7 @@ int maximum = 20;
 float p = 0.05;
 float i = 0.0;
 //float i = 0.000637;0.2
-float d = 0.1   ;
+float d = 0.1;
 //float d = 5.38625;
 
 static absolute_time_t last_time = get_absolute_time();
@@ -98,7 +98,6 @@ void sleep_ms_non_blocking(uint32_t delay_ms) {
 
 void line_follow() {
 
-    printf("entro a la funcion\n");
     if (route_step >= route.size()) {
         line_follow_mode = false;  // Reset path to repeat
         motors.stop();
@@ -109,14 +108,16 @@ void line_follow() {
     array<uint16_t, NUM_SENSORS> sensor_values;
     tie(position, sensor_values) = irSensor.read_line();
 
-    //for (auto v : sensor_values) printf("%d ", v);
-    //printf("\n");
+    for (auto v : sensor_values) printf("%d ", v);
+    printf("\n");
 
     for (int i = 0; i < 5; ++i) {
         ir_values_msg.data.data[i] = sensor_values[i];
     }
     rcl_publish(&ir_values_publisher, &ir_values_msg, NULL);
 
+    static int white_count = 0;
+    static int double_black_counter = 0;
 
     uint16_t sensor_sum = accumulate(sensor_values.begin(), sensor_values.end(), 0);
 
@@ -125,24 +126,38 @@ void line_follow() {
     bool all_black = black_count >= 4;
 
     // Check if center sensors detect black (delivery marker)
-    bool center_bar = sensor_values[0] > 400 && sensor_values[4] > 400 &&
-                      sensor_values[1] < 150 && sensor_values[2] < 150 && sensor_values[3] < 150;
+    bool center_bar = false;
+    if (sensor_values[0] > 400 && sensor_values[4] > 400 &&  
+        (sensor_values[1] < 150 && sensor_values[2] < 150 && sensor_values[3] < 150)) {
+        center_bar = true;
+    }
+
+    printf("Current step: %zu, route char: %c\n", route_step, route[route_step]);
+
     bool all_white = all_of(sensor_values.begin(), sensor_values.end(), [](int v) { return v > 400; });
+    int turn_speed = 25;
+    int time_sleep = 425;
 
     switch (current_state) {
         case FOLLOWING_LINE:
             if (all_white) {
-                motors.stop();
-                return;
+                white_count++;
+                if (white_count >= 20) {
+                    motors.stop();
+                    return;
+                }
             } else if (all_black) {
+                white_count = 0;
                 motors.stop();
                 current_state = INTERSECTION;
                 return;
             } else if (center_bar) {
-                motors.stop();
+                white_count = 0;
+                
                 current_state = DROPPING_PACKAGE;
                 return;
             } else {
+                white_count = 0;
                 proportional = position - 3000;
 
                 int16_t derivative = proportional - last_proportional;
@@ -166,15 +181,8 @@ void line_follow() {
             break;
 
         case INTERSECTION:
-            gpio_init(BUZZER_PIN);
-            gpio_set_dir(BUZZER_PIN, GPIO_OUT);
-            gpio_put(BUZZER_PIN, 1);
-            sleep_ms_non_blocking(100);
-            gpio_put(BUZZER_PIN, 0);
-
             if (route_step < route.size()) {
-                int turn_speed = 25;
-                int time_sleep = 425;
+               
                 //sleep_ms_non_blocking(250);  // tune
                 switch (route[route_step]) {
                     case 'L':
@@ -223,7 +231,54 @@ void line_follow() {
             gpio_put(BUZZER_PIN, 1);
             sleep_ms_non_blocking(50);
             gpio_put(BUZZER_PIN, 0);
-            current_state = FOLLOWING_LINE;
+            printf("DROP step: %zu, route char: %c\n", route_step, route[route_step]);
+
+            if (route[route_step] == 'D') {
+                motors.stop();
+                sleep_ms_non_blocking(50);
+                // Forward
+                motors.forward(maximum);
+                sleep_ms_non_blocking(time_sleep*0.5);  // tune
+                //motors.stop();
+                tie(position, sensor_values) = irSensor.read_line();
+                for (auto v : sensor_values) printf("%d ", v);
+                printf("\n");
+                for (int i = 0; i < 5; ++i) {
+                    ir_values_msg.data.data[i] = sensor_values[i];
+                }
+                rcl_publish(&ir_values_publisher, &ir_values_msg, NULL);
+                //sleep_ms_non_blocking(time_sleep);
+                // Turn Left so drop right
+                motors.drop_right(int (maximum));//*(2.0/3.0)));
+                sleep_ms_non_blocking(time_sleep*1.2);
+                // Drop package
+                motors.stop();
+                tie(position, sensor_values) = irSensor.read_line();
+                for (auto v : sensor_values) printf("%d ", v);
+                printf("\n");
+                for (int i = 0; i < 5; ++i) {
+                    ir_values_msg.data.data[i] = sensor_values[i];
+                }
+                rcl_publish(&ir_values_publisher, &ir_values_msg, NULL);
+                sleep_ms_non_blocking(2000);
+                // Return
+                motors.drop_left(int (maximum));//*(2.0/3.0)));
+                sleep_ms_non_blocking(int(time_sleep*0.5));
+                while (true) {
+                    cyw43_arch_poll();
+                    auto [pos, sensors] = irSensor.read_line();
+                    if (sensors[0] > 400 && 
+                        (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
+                        sensors[4] > 400) {
+                        break;  // aligned with the line
+                    }
+                }
+                route_step++;
+            } else {
+                motors.forward(maximum);
+                sleep_ms_non_blocking(time_sleep*(1.0/2.0));  // tune
+            }
+            current_state = FOLLOWING_LINE;    
             break;
     }
 }
@@ -253,33 +308,34 @@ void cmd_vel_subscription_callback(const void * msgin) {
 }
 
 void line_follow_callback(const void * msgin) {
-    printf("CALLBACK RECIV LF \n");
     const std_msgs__msg__Bool * msg = (const std_msgs__msg__Bool *) msgin;
-    //line_follow_mode = msg->data;
-    line_follow_mode = true;
-    gpio_init(BUZZER_PIN);    
-    gpio_set_dir(BUZZER_PIN, GPIO_OUT);
-    gpio_put(BUZZER_PIN, 1);
-    sleep_ms_non_blocking(50);
-    gpio_put(BUZZER_PIN, 0);
-    /*
+    line_follow_mode = msg->data;
+    
     if (!line_follow_mode) {
-        //printf("[PICO] Modo seguidor de línea DESACTIVADO\n");
         motors.stop();
-    }*/
+    }
 }
 
 void obstacle_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
     (void) last_call_time;
     if (timer == NULL) return;
 
+    static int obstacle_count = 0;
     float dist = utSensor.read_distance_cm();
     //printf("Distancia: %.2f cm\n", dist);
 
     if (dist > 10.0f) {
+        obstacle_count = 0;
         obstacle_alert_msg.data = false;
+        if (!line_follow_mode && !route.empty()) 
+            line_follow_mode = true;
     } else {
-        obstacle_alert_msg.data = true;  // stop
+        obstacle_count++;
+        if (obstacle_count >= 5) {
+            motors.stop();
+            line_follow_mode = false;
+            obstacle_alert_msg.data = true;  // stop
+        }
     }
 
     rcl_publish(&obstacle_alert_publisher, &obstacle_alert_msg, NULL);
@@ -298,7 +354,7 @@ void route_callback(const void *msgin) {
     route.clear();
     for (size_t i = 0; i < msg->data.size; ++i) {
         char c = msg->data.data[i];
-        if (c == 'L' || c == 'R' || c == 'S') {
+        if (c == 'L' || c == 'R' || c == 'S' || c == 'D') {
             route.push_back(c);
         }
     }
@@ -351,10 +407,25 @@ int main()
         sleep_ms_non_blocking(100);
     }
 */
-    //ST_PICOW_TRANSPORT_PARAMS picow_params = {0};
     memset(&picow_params, 0, sizeof(picow_params));
-    
+
+    // WIFI CONNECTION
     wifi_start();
+    const int timeout_ms = 1000;
+    const uint8_t attempts = 120;
+
+    while (rmw_uros_ping_agent(timeout_ms, attempts) != RCL_RET_OK) {
+        printf("Waiting micro-ROS agent\n");
+        sleep_ms_non_blocking(1000);
+    }
+    printf("Connected.\n");
+
+    
+    st7789_init();
+    st7789_fill(BLACK);
+
+    draw_large_digit(85, 20, '0' + ROBOT_ID, GREEN, 14);  // posición y escala
+    
 
     irSensor.fixed_calibration();
     /* 
@@ -377,15 +448,7 @@ int main()
     }
     */
 
-    // WAIT CONNECTION WITH THE AGENT
-    const int timeout_ms = 1000;
-    const uint8_t attempts = 120;
-
-    while (rmw_uros_ping_agent(timeout_ms, attempts) != RCL_RET_OK) {
-        printf("Esperando al agente micro-ROS...\n");
-        sleep_ms_non_blocking(1000);
-    }
-    printf("Conectado con el agente.\n");
+    // PICO NODE
     rcl_allocator_t allocator = rcl_get_default_allocator();
     rclc_support_t support;
     rclc_support_init(&support, 0, NULL, &allocator);
@@ -461,7 +524,7 @@ int main()
 
     // timer for the obstacle detection
     rcl_timer_t obstacle_timer;
-    rclc_timer_init_default(&obstacle_timer, &support, RCL_MS_TO_NS(10), obstacle_timer_callback);
+    rclc_timer_init_default(&obstacle_timer, &support, RCL_MS_TO_NS(50), obstacle_timer_callback);
     
     // timer for the line follow mode, its executing unless i send false in the line_folow_subs
     rcl_timer_t line_follow_timer;
@@ -469,7 +532,7 @@ int main()
 
     rclc_executor_t executor;
     rclc_executor_init(&executor, &support.context, 4, &allocator);
-    //rclc_executor_add_timer(&executor, &obstacle_timer);
+    rclc_executor_add_timer(&executor, &obstacle_timer);
     rclc_executor_add_timer(&executor, &line_follow_timer);
     //rclc_executor_add_subscription(&executor, &cmd_vel_subscriber, &cmd_vel_msg, cmd_vel_subscription_callback, ON_NEW_DATA);
     rclc_executor_add_subscription(&executor, &route_subscriber, &route_msg, route_callback, ON_NEW_DATA);
@@ -481,11 +544,7 @@ int main()
     while (true)
     {
         cyw43_arch_poll();
-        rcl_ret_t exec_ret = rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1));
-
-        // Timeout de seguridad: si no recibes comandos en 5 segundos, detener
-        //if (absolute_time_diff_us(last_cmd_time, get_absolute_time()) > 5e6) {
-        //   stop();  // SIN comunicación en 5 segundos → detiene
-        //} 
+        rclc_executor_spin_some(&executor, RCL_MS_TO_NS(1));
+        
     }
 }

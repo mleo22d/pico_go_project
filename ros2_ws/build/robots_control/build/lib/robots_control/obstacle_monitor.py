@@ -1,6 +1,13 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Bool
+import yaml
+
+with open('robots_config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
+
+NUM_ROBOTS = config['num_robots']
+
 
 class ObstacleMonitor(Node):
 

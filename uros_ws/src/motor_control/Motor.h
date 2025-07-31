@@ -12,8 +12,11 @@ public:
     void left(int speed);
     void right(int speed);
     void reverse(int speed);
+    void drop_right(int speed);
+    void drop_left(int speed);
     void set_motor(int left, int right);
     void set_speed(uint pin, int speed_percent);
+    
     
 private:
     const uint _ain1 = 18;
