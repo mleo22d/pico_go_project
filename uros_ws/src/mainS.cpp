@@ -1,4 +1,4 @@
-    /*#include "pico/stdlib.h"
+#include "pico/stdlib.h"
 #include "hardware/pwm.h"
 
 const uint SERVO_PIN = 0;
@@ -77,59 +77,5 @@ int main() {
         sleep_ms(1000);  // Espera 2 s
         
        
-    }
-}
-*/
-
-#include "pico/stdlib.h"
-#include "hardware/pio.h"
-#include "hardware/clocks.h"
-#include "ws2812.pio.h"
-#include <stdio.h>
-
-#define PIN_WS2812 22
-#define NUM_LEDS 4
-#define BRIGHTNESS 0.8f  // entre 0.0 y 1.0
-
-uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
-    return ((uint32_t)g << 16) | ((uint32_t)r << 8) | b;
-}
-
-void ws2812_program_init(PIO pio, uint sm, uint offset, uint pin, float freq) {
-    pio_sm_config c = ws2812_program_get_default_config(offset);
-    sm_config_set_sideset_pins(&c, pin);
-    sm_config_set_out_shift(&c, false, true, 24);
-    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
-    sm_config_set_clkdiv(&c, (float)clock_get_hz(clk_sys) / freq);
-    pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
-    pio_sm_init(pio, sm, offset, &c);
-    pio_sm_set_enabled(pio, sm, true);
-}
-int main() {
-    stdio_init_all();
-    sleep_ms(1000);
-    printf("Iniciando...\n");
-
-    PIO pio = pio0;
-    uint sm = 0;
-    uint offset = pio_add_program(pio, &ws2812_program);
-    printf("Programa PIO cargado en offset %u\n", offset);
-
-    ws2812_program_init(pio, sm, offset, PIN_WS2812, 800000);
-    printf("PIO inicializado\n");
-
-    uint8_t r = 255 * BRIGHTNESS;
-    uint8_t g = 255 * BRIGHTNESS;
-    uint8_t b = 255 * BRIGHTNESS;
-    uint32_t color = urgb_u32(255, 0, 0);  // Rojo fuerte
-
-    printf("Color armado: %06X\n", color);
-
-    while (true) {
-        for (int i = 0; i < NUM_LEDS; i++) {
-            pio_sm_put_blocking(pio, sm, color << 8u);
-        }
-        printf("Color enviado\n");
-        sleep_ms(1000);
     }
 }

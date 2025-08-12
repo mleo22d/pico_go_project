@@ -44,6 +44,10 @@ std_msgs__msg__Bool obstacle_alert_msg;
 rcl_subscription_t cmd_vel_subscriber;
 geometry_msgs__msg__Twist cmd_vel_msg;
 
+// To know when the pico finishes the route
+rcl_publisher_t path_complete_publisher;
+std_msgs__msg__Bool path_complete_msg;
+
 // start line follow mode
 rcl_subscription_t line_follow_subscriber;
 std_msgs__msg__Bool line_follow_msg;
@@ -78,10 +82,9 @@ int16_t last_proportional = 0;
 int16_t power_diff = 0;
 int16_t max_integral = 5000;
 int maximum = 20;
-float p = 0.05;
+float p = 0.226; //0.225
 float i = 0.0;
-//float i = 0.000637;0.2
-float d = 0.1;
+float d = 0.3041; //0.304;
 //float d = 5.38625;
 
 static absolute_time_t last_time = get_absolute_time();
@@ -101,6 +104,10 @@ void line_follow() {
     if (route_step >= route.size()) {
         line_follow_mode = false;  // Reset path to repeat
         motors.stop();
+        if (!path_complete_msg.data) {
+            path_complete_msg.data = true;
+            rcl_publish(&path_complete_publisher, &path_complete_msg, NULL);
+        }
         return;
     }
 
@@ -135,25 +142,25 @@ void line_follow() {
     printf("Current step: %zu, route char: %c\n", route_step, route[route_step]);
 
     bool all_white = all_of(sensor_values.begin(), sensor_values.end(), [](int v) { return v > 400; });
-    int turn_speed = 25;
+    int turn_speed = 20;
     int time_sleep = 425;
 
     switch (current_state) {
         case FOLLOWING_LINE:
             if (all_white) {
                 white_count++;
-                if (white_count >= 20) {
-                    motors.stop();
+                if (white_count >= 300) {
+                    motors.stop();  
                     return;
                 }
             } else if (all_black) {
                 white_count = 0;
-                motors.stop();
+                //motors.stop();
+                sleep_ms_non_blocking(50);
                 current_state = INTERSECTION;
                 return;
             } else if (center_bar) {
                 white_count = 0;
-                
                 current_state = DROPPING_PACKAGE;
                 return;
             } else {
@@ -186,22 +193,8 @@ void line_follow() {
                 //sleep_ms_non_blocking(250);  // tune
                 switch (route[route_step]) {
                     case 'L':
-                        motors.left(maximum);
-                        sleep_ms_non_blocking(time_sleep);
-                        while (true) {
-                            cyw43_arch_poll();
-                            auto [pos, sensors] = irSensor.read_line();
-                            if (sensors[0] > 400 && 
-                                (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
-                                sensors[4] > 400) {
-                                break;  // aligned with the line
-                            }
-                        }
-                        //motors.stop();
-                        break;   
-                    case 'R':
-                        motors.right(turn_speed);
-                        sleep_ms_non_blocking(time_sleep);
+                        motors.left(turn_speed);
+                        sleep_ms_non_blocking(time_sleep*0.9);
                         while (true) {
                             cyw43_arch_poll();
                             auto [pos, sensors] = irSensor.read_line();
@@ -212,16 +205,46 @@ void line_follow() {
                             }
                         }
                         motors.stop();
+                        sleep_ms_non_blocking(50);
+                        break;   
+                    case 'R':
+                        motors.right(turn_speed);
+                        sleep_ms_non_blocking(time_sleep*0.9);
+                        while (true) {
+                            cyw43_arch_poll();
+                            auto [pos, sensors] = irSensor.read_line();
+                            if (sensors[0] > 400 && 
+                                (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
+                                sensors[4] > 400) {
+                                break;  // aligned with the line
+                            }
+                        }
+                        motors.stop();
+                        sleep_ms_non_blocking(50);
                         break;
-                    case 'S':
+                    case 'S':      
                         motors.forward(maximum);
-                        sleep_ms_non_blocking(time_sleep*(1.0/2.0));  // tune
+                        sleep_ms_non_blocking(time_sleep*(1.0/3.0));  // tune
+                        break;
+                    case 'T':
+                        motors.back(maximum);
+                        sleep_ms_non_blocking(time_sleep*(2.1));  
+                        while (true) {
+                            cyw43_arch_poll();
+                            auto [pos, sensors] = irSensor.read_line();
+                            if (sensors[0] > 400 && sensors[1] > 400 &&  sensors[2] < 150 && sensors[3] > 400 && sensors[4] > 400) {
+                                break;  // aligned with the line
+                            }
+                        }
+                        motors.stop();
+                        sleep_ms_non_blocking(50);
                         break;
                 }
                 route_step++;
             }
-
             current_state = FOLLOWING_LINE;
+            integral = 0;
+            last_proportional = 0;
             break;
 
         case DROPPING_PACKAGE:
@@ -233,52 +256,79 @@ void line_follow() {
             gpio_put(BUZZER_PIN, 0);
             printf("DROP step: %zu, route char: %c\n", route_step, route[route_step]);
 
-            if (route[route_step] == 'D') {
-                motors.stop();
-                sleep_ms_non_blocking(50);
+            if (route[route_step] == '1' || route[route_step] == '2') {
                 // Forward
                 motors.forward(maximum);
-                sleep_ms_non_blocking(time_sleep*0.5);  // tune
-                //motors.stop();
-                tie(position, sensor_values) = irSensor.read_line();
-                for (auto v : sensor_values) printf("%d ", v);
-                printf("\n");
-                for (int i = 0; i < 5; ++i) {
-                    ir_values_msg.data.data[i] = sensor_values[i];
-                }
-                rcl_publish(&ir_values_publisher, &ir_values_msg, NULL);
-                //sleep_ms_non_blocking(time_sleep);
-                // Turn Left so drop right
-                motors.drop_right(int (maximum));//*(2.0/3.0)));
-                sleep_ms_non_blocking(time_sleep*1.2);
-                // Drop package
+                sleep_ms_non_blocking(time_sleep*0.35);  // tune
                 motors.stop();
-                tie(position, sensor_values) = irSensor.read_line();
-                for (auto v : sensor_values) printf("%d ", v);
-                printf("\n");
-                for (int i = 0; i < 5; ++i) {
-                    ir_values_msg.data.data[i] = sensor_values[i];
-                }
-                rcl_publish(&ir_values_publisher, &ir_values_msg, NULL);
-                sleep_ms_non_blocking(2000);
-                // Return
-                motors.drop_left(int (maximum));//*(2.0/3.0)));
-                sleep_ms_non_blocking(int(time_sleep*0.5));
-                while (true) {
-                    cyw43_arch_poll();
-                    auto [pos, sensors] = irSensor.read_line();
-                    if (sensors[0] > 400 && 
-                        (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
-                        sensors[4] > 400) {
-                        break;  // aligned with the line
+                sleep_ms_non_blocking(50);
+                if (route[route_step] == '2') {
+                    // Turn Left so drop right
+                    motors.drop_right(int (maximum));
+                    sleep_ms_non_blocking(time_sleep*1.2);
+                    // Drop package
+                    motors.stop();       
+                    sleep_ms_non_blocking(3000);
+                    // Return
+                    motors.drop_left(int (maximum));//*(2.0/3.0)));
+                    sleep_ms_non_blocking(int(time_sleep*0.5));
+                    while (true) {
+                        cyw43_arch_poll();
+                        auto [pos, sensors] = irSensor.read_line();
+                        if (sensors[0] > 400 && 
+                            (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
+                            sensors[4] > 400) {
+                            break;  // aligned with the line
+                        }
                     }
+                    motors.stop();
+                    sleep_ms_non_blocking(50);
+                } else if (route[route_step] == '1') {
+                    motors.drop_left(int (maximum));
+                    sleep_ms_non_blocking(time_sleep*1);
+                    // Drop package
+                    motors.stop();
+                    sleep_ms_non_blocking(3000);
+                    // Return
+                    motors.drop_right(int (maximum));//*(2.0/3.0)));
+                    sleep_ms_non_blocking(int(time_sleep*0.4));
+                    while (true) {
+                        cyw43_arch_poll();
+                        auto [pos, sensors] = irSensor.read_line();
+                        if (sensors[0] > 400 && 
+                            (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
+                            sensors[4] > 400) {
+                            break;  // aligned with the line
+                        }
+                    }
+                    motors.stop();
+                    sleep_ms_non_blocking(50);
                 }
+                if (route[route_step] == 'T') {
+                    motors.stop();
+                    sleep_ms_non_blocking(100);  
+                    motors.back(maximum);
+                    sleep_ms_non_blocking(time_sleep*(1.5));  
+                    while (true) {
+                        cyw43_arch_poll();
+                        auto [pos, sensors] = irSensor.read_line();
+                        if (sensors[0] > 400 && 
+                            (sensors[2] < 150 || sensors[1] < 150 || sensors[3] < 150) && 
+                            sensors[4] > 400) {
+                            break;  // aligned with the line
+                        }
+                    }
+                    motors.stop();
+                }
+                sleep_ms_non_blocking(100);  
                 route_step++;
             } else {
                 motors.forward(maximum);
-                sleep_ms_non_blocking(time_sleep*(1.0/2.0));  // tune
+                sleep_ms_non_blocking(time_sleep*(1.0/8.0));  // tune
             }
             current_state = FOLLOWING_LINE;    
+            integral = 0;
+            last_proportional = 0;
             break;
     }
 }
@@ -322,16 +372,16 @@ void obstacle_timer_callback(rcl_timer_t * timer, int64_t last_call_time) {
 
     static int obstacle_count = 0;
     float dist = utSensor.read_distance_cm();
-    //printf("Distancia: %.2f cm\n", dist);
+    printf("Distancia: %.2f cm\n", dist);
 
-    if (dist > 10.0f) {
+    if (dist > 13.0f) {
         obstacle_count = 0;
         obstacle_alert_msg.data = false;
         if (!line_follow_mode && !route.empty()) 
             line_follow_mode = true;
     } else {
         obstacle_count++;
-        if (obstacle_count >= 5) {
+        if (obstacle_count >= 4) {
             motors.stop();
             line_follow_mode = false;
             obstacle_alert_msg.data = true;  // stop
@@ -354,7 +404,7 @@ void route_callback(const void *msgin) {
     route.clear();
     for (size_t i = 0; i < msg->data.size; ++i) {
         char c = msg->data.data[i];
-        if (c == 'L' || c == 'R' || c == 'S' || c == 'D') {
+        if (c == 'L' || c == 'R' || c == 'S' || c == '1' || c == '2' || c == 'T') {
             route.push_back(c);
         }
     }
@@ -363,7 +413,7 @@ void route_callback(const void *msgin) {
     printf("Ruta recibida: %s\n", route_str.c_str());
     current_state = FOLLOWING_LINE; 
     line_follow_mode = true;  
-    route_step = 0;
+    path_complete_msg.data = false;
 }
 
 void wifi_start() {
@@ -492,6 +542,16 @@ int main()
         ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Int32MultiArray),
         ir_values_topic.c_str()
     );
+
+    // Create the done route publisher
+    string path_complete_topic = "/robot_" + to_string(ROBOT_ID) + "/path_complete";
+    rclc_publisher_init_default(
+        &path_complete_publisher,
+        &node,
+        ROSIDL_GET_MSG_TYPE_SUPPORT(std_msgs, msg, Bool),
+        path_complete_topic.c_str()
+    );
+
     
     std_msgs__msg__String__init(&route_msg);
     route_msg.data.data = route_data_buffer;

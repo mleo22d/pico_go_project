@@ -55,13 +55,13 @@ void Motor::right(int speed) {
     gpio_put(_ain1, 0); gpio_put(_ain2, 1);
     gpio_put(_bin1, 1); gpio_put(_bin2, 0);
     set_speed(_pwma, speed);
-    set_speed(_pwmb, int(speed/2.0));
+    set_speed(_pwmb, int(speed*(3.0/4.0)));
 }
 
 void Motor::left(int speed) {
     gpio_put(_ain1, 1); gpio_put(_ain2, 0);
     gpio_put(_bin1, 0); gpio_put(_bin2, 1);
-    set_speed(_pwma, int(speed/2.0));
+    set_speed(_pwma, int(speed*(3.0/4.0)));
     set_speed(_pwmb, speed);
 }
 
@@ -75,6 +75,13 @@ void Motor::drop_right(int speed) {
 void Motor::drop_left(int speed) {
     gpio_put(_ain1, 0); gpio_put(_ain2, 1);
     gpio_put(_bin1, 1); gpio_put(_bin2, 0);
+    set_speed(_pwma, speed);
+    set_speed(_pwmb, speed);
+}
+
+void Motor::back(int speed) {
+    gpio_put(_ain1, 1); gpio_put(_ain2, 0);
+    gpio_put(_bin1, 0); gpio_put(_bin2, 1);
     set_speed(_pwma, speed);
     set_speed(_pwmb, speed);
 }
