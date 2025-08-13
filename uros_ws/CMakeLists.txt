@@ -27,6 +27,7 @@ function(add_robot robot_id)
     add_executable(${exec_name}
         src/main.cpp
         src/motor_control/Motor.cpp
+        src/motor_control/ServoMotor.cpp
         src/line_follow/InfraredSensor.cpp
         src/obstacle_detection/UltrasonicSensor.cpp
         src/display/display_manager.cpp
@@ -36,8 +37,7 @@ function(add_robot robot_id)
     )
     # SPI PIO program
     pico_generate_pio_header(${exec_name} ${CMAKE_CURRENT_LIST_DIR}/src/line_follow/spi.pio)
-    pico_generate_pio_header(${exec_name} ${CMAKE_CURRENT_LIST_DIR}/src/ws2812.pio)
-
+    pico_generate_pio_header(${exec_name} ${CMAKE_CURRENT_LIST_DIR}/src/motor_control/servo.pio)
 
     target_compile_definitions(${exec_name} PRIVATE
         LWIP_TIMEVAL_PRIVATE=0
@@ -47,6 +47,7 @@ function(add_robot robot_id)
     target_link_libraries(${exec_name}
         pico_stdlib
         microros
+        hardware_pio
         hardware_pwm
         pico_cyw43_arch_lwip_poll
         hardware_spi

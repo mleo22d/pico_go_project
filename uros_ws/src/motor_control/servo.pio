@@ -1,0 +1,17 @@
+.program servo
+; Genera un pulso alto (high_us) y luego bajo (20000-high_us), en µs.
+; Se espera que el reloj efectivo sea 1 MHz (clkdiv=125 → 1 ciclo = 1 µs).
+
+.wrap_target
+pull        block         ; high_us en OSR
+mov  x, osr
+set  pins, 1              ; GPIO alto
+high_loop:
+    jmp  x-- high_loop    ; espera high_us ciclos
+
+pull        block         ; low_us en OSR
+mov  x, osr
+set  pins, 0              ; GPIO bajo
+low_loop:
+    jmp  x-- low_loop     ; espera low_us ciclos
+.wrap

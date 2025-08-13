@@ -22,6 +22,7 @@
 #include "display/st7789.h"
 #include <algorithm>
 #include "display/st7789.h"
+#include "motor_control/ServoMotor.h"
 
 using namespace std;
 
@@ -69,6 +70,8 @@ std_msgs__msg__Int32MultiArray ir_values_msg;
 Motor motors; 
 InfraredSensor irSensor;
 UltrasonicSensor utSensor;
+ServoMotor servo;
+
 
 // Navigation
 enum State { FOLLOWING_LINE, INTERSECTION, DROPPING_PACKAGE };
@@ -98,6 +101,23 @@ void sleep_ms_non_blocking(uint32_t delay_ms) {
         tight_loop_contents(); 
     }
 }
+
+void drop_package() {
+    servo.write_deg(85);
+    // Dropping
+    for (int ang = 85; ang >= 0; ang--) {
+        servo.write_deg(ang);
+        //sleep_ms_non_blocking(20);
+    }
+    sleep_ms_non_blocking(500);
+    // going up
+    for (int ang = 0; ang <= 85; ang++) {
+        servo.write_deg(ang);
+        //sleep_ms_non_blocking(10); // 20 ms entre pasos
+    }
+    sleep_ms_non_blocking(500);
+}
+
 
 void line_follow() {
 
@@ -268,7 +288,7 @@ void line_follow() {
                     sleep_ms_non_blocking(time_sleep*1.2);
                     // Drop package
                     motors.stop();       
-                    sleep_ms_non_blocking(3000);
+                    drop_package();
                     // Return
                     motors.drop_left(int (maximum));//*(2.0/3.0)));
                     sleep_ms_non_blocking(int(time_sleep*0.5));
@@ -285,13 +305,13 @@ void line_follow() {
                     sleep_ms_non_blocking(50);
                 } else if (route[route_step] == '1') {
                     motors.drop_left(int (maximum));
-                    sleep_ms_non_blocking(time_sleep*1);
+                    sleep_ms_non_blocking(time_sleep*1.2);
                     // Drop package
                     motors.stop();
-                    sleep_ms_non_blocking(3000);
+                    drop_package();
                     // Return
                     motors.drop_right(int (maximum));//*(2.0/3.0)));
-                    sleep_ms_non_blocking(int(time_sleep*0.4));
+                    sleep_ms_non_blocking(int(time_sleep*0.5));
                     while (true) {
                         cyw43_arch_poll();
                         auto [pos, sensors] = irSensor.read_line();
@@ -447,6 +467,7 @@ void wifi_start() {
     // CONECTION COMPLETE
 }
 
+
 int main()
 {
     stdio_init_all();
@@ -475,28 +496,8 @@ int main()
     st7789_fill(BLACK);
 
     draw_large_digit(85, 20, '0' + ROBOT_ID, GREEN, 14);  // posición y escala
-    
 
     irSensor.fixed_calibration();
-    /* 
-    
-    irSensor.calibrate();
-    auto min_vals = irSensor.get_calibrated_min();
-    auto max_vals = irSensor.get_calibrated_max();
-
-    
-    printf("Valores de calibración:\n");
-
-    printf("Min: {");
-    for (int i = 0; i < NUM_SENSORS; ++i) {
-        printf("%d%s", min_vals[i], (i < NUM_SENSORS - 1) ? ", " : "}\n");
-    }
-
-    printf("Max: {");
-    for (int i = 0; i < NUM_SENSORS; ++i) {
-        printf("%d%s", max_vals[i], (i < NUM_SENSORS - 1) ? ", " : "}\n");
-    }
-    */
 
     // PICO NODE
     rcl_allocator_t allocator = rcl_get_default_allocator();
