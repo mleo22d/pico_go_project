@@ -1,7 +1,7 @@
 # pico_go_project
 This is a project to have between 3 and 5 automated picoGo, like AGVs
 
-# 1. Clonw
+# 1. Clone
 git clone https://github.com/mleo22d/pico_go_project.git
 cd pico_go_project
 
